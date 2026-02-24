@@ -1,9 +1,19 @@
 import * as vscode from "vscode"
+import {
+	findClassCnEditInLine,
+	getAttributeNameForLanguage,
+	sanitizeFunctionName,
+	type SupportedLanguageId
+} from "./classCnTransform"
+
+const SUPPORTED_LANGUAGES: SupportedLanguageId[] = ["svelte", "javascriptreact", "typescriptreact"]
+const TOGGLE_COMMAND = "cnHelper.toggleClassCnAtCursor"
+const AFTER_EDIT_COMMAND = "cnHelper._afterClassCnEdit"
 
 export function activate(context: vscode.ExtensionContext) {
 	// Post-edit cursor placement helper (needs to be registered inside activate)
 	context.subscriptions.push(
-		vscode.commands.registerCommand("typeframe._afterClassCnEdit", (pos: vscode.Position) => {
+		vscode.commands.registerCommand(AFTER_EDIT_COMMAND, (pos: vscode.Position) => {
 			const editor = vscode.window.activeTextEditor
 			if (!editor) return
 			editor.selection = new vscode.Selection(pos, pos)
@@ -11,9 +21,29 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	)
 
+	const provider = new ClassCnCodeActionProvider()
+	const selector = SUPPORTED_LANGUAGES.map(language => ({ language }))
+
 	context.subscriptions.push(
-		vscode.languages.registerCodeActionsProvider({ language: "svelte" }, new ClassCnCodeActionProvider(), {
+		vscode.languages.registerCodeActionsProvider(selector, provider, {
 			providedCodeActionKinds: [vscode.CodeActionKind.RefactorRewrite, vscode.CodeActionKind.QuickFix]
+		})
+	)
+
+	context.subscriptions.push(
+		vscode.commands.registerTextEditorCommand(TOGGLE_COMMAND, editor => {
+			const found = findAtCursor(editor)
+			if (!found) return
+
+			editor
+				.edit(builder => {
+					builder.replace(found.replaceRange, found.replacementText)
+				})
+				.then(applied => {
+					if (!applied) return
+					editor.selection = new vscode.Selection(found.newCursor, found.newCursor)
+					editor.revealRange(new vscode.Range(found.newCursor, found.newCursor))
+				})
 		})
 	)
 }
@@ -29,7 +59,8 @@ class ClassCnCodeActionProvider implements vscode.CodeActionProvider {
 		const editor = vscode.window.activeTextEditor
 		if (!editor) return []
 		if (editor.document !== document) return []
-		if (document.languageId !== "svelte") return []
+		if (!SUPPORTED_LANGUAGES.includes(document.languageId as SupportedLanguageId)) return []
+		if (range.start.line !== range.end.line) return []
 
 		const found = findAtCursor(editor)
 		if (!found) return []
@@ -41,7 +72,7 @@ class ClassCnCodeActionProvider implements vscode.CodeActionProvider {
 		action.edit = edit
 
 		action.command = {
-			command: "typeframe._afterClassCnEdit",
+			command: AFTER_EDIT_COMMAND,
 			title: "",
 			arguments: [found.newCursor]
 		}
@@ -59,79 +90,30 @@ type Found = {
 
 function findAtCursor(editor: vscode.TextEditor): Found | null {
 	const doc = editor.document
+	const attributeName = getAttributeNameForLanguage(doc.languageId)
+	if (!attributeName) return null
+
 	const pos = editor.selection.active
 	const lineText = doc.lineAt(pos.line).text
+	const functionName = sanitizeFunctionName(
+		vscode.workspace.getConfiguration("cnHelper", doc.uri).get<string>("functionName")
+	)
 
-	// UNWRAP: class={cn("foo")} -> class="foo"
-	// - allow whitespace
-	// - allow either "..." or '...'
-	// - ONLY one arg (no comma)
-	{
-		// capture quote in group 1 so we can ensure same closing quote via backref \1
-		const re = /\bclass\s*=\s*\{\s*cn\s*\(\s*(["'])([^"'\\]*(?:\\.[^"'\\]*)*)\1\s*\)\s*\}/g
+	const match = findClassCnEditInLine({
+		lineText,
+		cursorCharacter: pos.character,
+		attributeName,
+		functionName
+	})
+	if (!match) return null
 
-		let m: RegExpExecArray | null
-		while ((m = re.exec(lineText))) {
-			const start = m.index
-			const end = start + m[0].length
-			if (pos.character < start || pos.character > end) continue
-
-			const rawValue = m[2]
-			const value = unescapeMinimal(rawValue)
-
-			const replacement = `class="${escapeForDoubleQuotes(value)}"`
-			const replaceRange = new vscode.Range(
-				new vscode.Position(pos.line, start),
-				new vscode.Position(pos.line, end)
-			)
-
-			const newCursor = new vscode.Position(pos.line, start + replacement.length - 1) // before closing "
-			return {
-				title: "Unwrap cn() in class",
-				replaceRange,
-				replacementText: replacement,
-				newCursor
-			}
-		}
+	return {
+		title: match.title,
+		replaceRange: new vscode.Range(
+			new vscode.Position(pos.line, match.startCharacter),
+			new vscode.Position(pos.line, match.endCharacter)
+		),
+		replacementText: match.replacementText,
+		newCursor: new vscode.Position(pos.line, match.newCursorCharacter)
 	}
-
-	// WRAP: class="foo" -> class={cn("foo", "")}
-	{
-		const re = /\bclass\s*=\s*"([^"]*)"/g
-		let m: RegExpExecArray | null
-		while ((m = re.exec(lineText))) {
-			const start = m.index
-			const end = start + m[0].length
-			if (pos.character < start || pos.character > end) continue
-
-			const value = m[1]
-			const escaped = escapeForDoubleQuotes(value)
-
-			const replacement = `class={cn("${escaped}", "")}`
-			const replaceRange = new vscode.Range(
-				new vscode.Position(pos.line, start),
-				new vscode.Position(pos.line, end)
-			)
-
-			const cursorOffset = `class={cn("`.length + escaped.length + `", "`.length
-			const newCursor = new vscode.Position(pos.line, start + cursorOffset)
-
-			return {
-				title: "Wrap class with cn(...)",
-				replaceRange,
-				replacementText: replacement,
-				newCursor
-			}
-		}
-	}
-
-	return null
-}
-
-function escapeForDoubleQuotes(s: string): string {
-	return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')
-}
-
-function unescapeMinimal(s: string): string {
-	return s.replace(/\\(["'\\])/g, "$1")
 }

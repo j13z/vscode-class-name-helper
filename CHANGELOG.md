@@ -1,9 +1,9 @@
 # Change Log
 
-All notable changes to the "cn-helper" extension will be documented in this file.
+## [0.0.1]
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-
-- Initial release
+- Initial publish-ready release
+- Toggle `class` / `className` strings into `cn(...)` and back
+- Svelte + React/TSX support
+- Configurable wrapper function name via `cnHelper.functionName`
+- Unit tests for transformation logic

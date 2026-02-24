@@ -1,5 +1,4 @@
 import typescriptEslint from "typescript-eslint"
-import eslintConfigPrettier from "eslint-config-prettier"
 
 export default [
   {
@@ -21,7 +20,5 @@ export default [
       curly: "off",
       semi: "off"
     }
-  },
-
-  eslintConfigPrettier
+  }
 ]

@@ -1,30 +1,64 @@
 {
-  "name": "cn-helper",
-  "displayName": "cn-helper",
-  "description": "A helper for the cn utility (which combines tailwind-merge with clsx)",
+  "name": "class-name-helper",
+  "displayName": "Class Name Helper",
+  "description": "Wrap or unwrap class / className values with cn(…) at the cursor (Svelte + React / TSX).",
+  "publisher": "Johannes Schmitz",
   "version": "0.0.1",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "author": {
+    "name": "Johannes Schmitz",
+    "email": "3612115+j13z@users.noreply.github.com"
+  },
   "engines": {
     "vscode": "^1.109.0"
   },
+  "keywords": [
+    "cn",
+    "clsx",
+    "tailwind",
+    "tailwindcss",
+    "svelte",
+    "react",
+    "tsx"
+  ],
   "categories": [
     "Other"
   ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
   "activationEvents": [
-    "onLanguage:svelte"
+    "onLanguage:svelte",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "typeframe.wrapClassWithCn",
-        "title": "Wrap class attribute value with cn(…)"
+        "command": "cnHelper.toggleClassCnAtCursor",
+        "title": "Class Name Helper: Toggle cn() Wrapper for class / className at Cursor"
       }
     ],
+    "configuration": {
+      "title": "Class Name Helper",
+      "properties": {
+        "cnHelper.functionName": {
+          "type": "string",
+          "default": "cn",
+          "description": "Function name used when wrapping / unwrapping class values (for example: cn or cx)."
+        }
+      }
+    },
     "keybindings": [
       {
-        "command": "typeframe.wrapClassWithCn",
-        "key": "cmd+alt+c",
-        "when": "editorTextFocus"
+        "command": "cnHelper.toggleClassCnAtCursor",
+        "mac": "cmd+alt+c",
+        "key": "ctrl+alt+c",
+        "when": "editorTextFocus && (editorLangId == svelte || editorLangId == javascriptreact || editorLangId == typescriptreact)"
       }
     ]
   },
@@ -33,17 +67,20 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile && pnpm run lint",
+    "test:unit": "node --test out/test/classCnTransform.test.js",
+    "test:vscode": "vscode-test",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "pnpm run test:unit"
   },
   "devDependencies": {
-    "@types/vscode": "^1.109.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "typescript-eslint": "^8.54.0",
+    "@types/vscode": "^1.109.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.7.1",
     "eslint": "^9.39.2",
     "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "typescript-eslint": "^8.54.0"
   }
 }

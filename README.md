@@ -1,71 +1,34 @@
-# cn-helper README
+# Class Name Helper
 
-This is the README for your extension "cn-helper". After writing up a brief description, we recommend including the following sections.
+Fast cursor-based wrapping for `cn(…)` class strings.
 
-## Features
+`Class Name Helper` toggles between:
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- `class="px-2 py-1"` and `class={cn("px-2 py-1", "")}`
+- `className="…"` and `className={cn("…", "")}`
 
-For example if there is an image subfolder under your extension project workspace:
+It only scans the current line at the cursor, so it stays lightweight.
 
-\!\[feature X\]\(images/feature-x.png\)
+## Usage
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- Place the cursor inside a `class` / `className` attribute.
+- Run the command: `Class Name Helper: Toggle cn() Wrapper for class/className at Cursor`
+- Or use the shortcut:
+  - macOS: `Cmd+Alt+C`
+  - Windows/Linux: `Ctrl+Alt+C`
+- The same action is also offered as a code action / quick fix.
 
-## Requirements
+## Supported Languages
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- Svelte (`class`)
+- React JSX / TSX (`className`)
 
-## Extension Settings
+## Setting
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+- `cnHelper.functionName` (default: `cn`)
+  - Use this if your project uses `cx(…)` or another wrapper name.
 
-For example:
+## Notes
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+- Unwrap only triggers for a single string argument: `cn("…")`
+- Multi-argument calls (for example `cn("a", active && "b")`) are intentionally left unchanged
