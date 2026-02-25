@@ -26,9 +26,18 @@ Developer docs for working on the extension locally.
 - `pnpm run compile` or `pnpm run build`
 - `pnpm test` (unit tests)
 - `pnpm run test:vscode` (integration tests in VS Code; downloads a VS Code test binary on first run)
+- `pnpm run release:check` (runs tests + verifies current `package.json` version has a `CHANGELOG.md` entry)
+- `pnpm run release:tag` (runs checks, requires clean git state, creates annotated tag `v<version>`)
 - `pnpm run package:vsix` (creates versioned `.vsix`, e.g. `class-name-helper-0.0.1.vsix`)
 - `pnpm run package:vsix:local` (creates `class-name-helper-local.vsix`)
 - `pnpm run install:local` (packages local VSIX and installs via `code --install-extension ... --force`; requires `code` CLI in `PATH`)
+
+## Release flow (lean)
+
+- Update `package.json` version and `CHANGELOG.md`
+- Run `pnpm run release:tag`
+- Push commits + tag (`git push --follow-tags`)
+- GitHub Actions builds/tests/packages and uploads the VSIX to the GitHub Release
 
 ## Install (VSIX)
 

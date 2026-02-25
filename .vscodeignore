@@ -6,6 +6,7 @@ test-cases.md
 DEVELOPMENT.md
 Spec.md
 docs/**
+scripts/**
 pnpm-lock.yaml
 .github/**
 .vscode/**
