@@ -11,6 +11,7 @@ Developer docs for working on the extension locally.
 
 ## What to test manually
 
+- Use `test-cases.md` as a copy/paste playground for quick checks in the Extension Development Host.
 - Toggle at cursor for:
   - `class="..."`
   - `class={fooClasses}`

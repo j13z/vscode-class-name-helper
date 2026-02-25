@@ -1,199 +1,129 @@
 # Class Name Helper Spec
 
-Short, testable requirements for the extension behavior.
+Short behavior contract (requirements + regression target).
 
-## Scope
+## Supported Scope
 
-Supported VS Code language IDs:
+- Should support:
+  - `svelte` -> attribute `class`
+  - `javascriptreact` -> attribute `className`
+  - `typescriptreact` -> attribute `className`
+- Should do nothing in unsupported languages (no transform, no code action).
+- Should behave the same via command, keybinding, and code action.
 
-- `svelte` -> attribute `class`
-- `javascriptreact` -> attribute `className`
-- `typescriptreact` -> attribute `className`
+## Configuration (`cnHelper.functionName`)
 
-Unsupported languages must produce no transform / no code action.
-
-Supported surfaces (same behavior):
-
-- command `cnHelper.toggleClassCnAtCursor`
-- keybinding
-- code action
-
-## Configuration
-
-`cnHelper.functionName`:
-
-- default: `cn`
-- trim whitespace
-- must be a valid identifier (`^[A-Za-z_$][\\w$]*$`)
-- fallback to `cn` if invalid or empty
+- Should default to `cn`.
+- Should trim whitespace.
+- Should accept only valid identifiers (`^[A-Za-z_$][\\w$]*$`).
+- Should fallback to `cn` if empty/invalid.
 
 Examples:
 
-- `" cx "` -> `cx`
-- `"cn.helper"` -> `cn` (invalid)
+- Given `" cx "`, should use `cx`.
+- Given `"cn.helper"`, should use `cn`.
 
 ## Matching Rules
 
-- Only inspect the active line.
-- Only transform when the cursor is inside the matched `class` / `className` attribute span.
-- If line length is `> 4000`, do nothing.
-- If multiple attributes exist on the line, only the one containing the cursor is eligible.
+- Should inspect only the active line.
+- Should only transform when the cursor is inside the target attribute span.
+- Should no-op when line length is `> 4000`.
+- Given multiple attributes on one line, should only affect the one containing the cursor.
 
 Match order (important):
 
-1. unwrap string form: `FN("...")`
-2. unwrap variable/member form: `FN(expr)`
+1. unwrap string form (`FN("...")`)
+2. unwrap variable/member form (`FN(expr)`)
 3. wrap plain string attribute
 4. wrap plain variable/member attribute
 
-(`FN` = sanitized configured function name)
+`FN` = sanitized configured function name.
 
-## Supported Transforms
+## Functionality: Wrap String Attribute
 
-### 1. Wrap string attribute
+- Given `class="..."` or `class='...'`, should produce `class={FN("...", "")}`.
+- Given `className="..."` or `className='...'`, should produce `className={FN("...", "")}`.
+- Should always use double quotes inside `FN(...)`.
+- Should always add the second argument `, ""`.
+- Should place the cursor inside the second empty string.
 
-Input:
+## Functionality: Unwrap String `FN(...)`
 
-- `class="..."`
-- `class='...'`
-- `className="..."`
-- `className='...'`
+- Given `class={FN("...")}` or `className={FN('...')}`, should produce plain quoted attribute form.
+- Should output double quotes in the plain attribute (`class="..."` / `className="..."`).
+- Should only unwrap when there is exactly one string argument.
+- Given multi-arg call (for example `FN("a", cond && "b")`), should not unwrap.
+- Should place the cursor at the end of the replaced attribute span.
 
-Output:
+## Functionality: Wrap Variable / Member Expression
 
-- `class={FN("...", "")}`
-- `className={FN("...", "")}`
-
-Rules:
-
-- output always uses double quotes inside `FN(...)`
-- inserts second arg `, ""`
-- cursor moves inside the second empty string (`""`)
-
-### 2. Unwrap string `FN(...)`
-
-Input:
-
-- `class={FN("...")}`
-- `className={FN('...')}`
-
-Output:
-
-- `class="..."`
-- `className="..."`
-
-Rules:
-
-- only if exactly one string argument
-- multi-arg `FN(...)` is not unwrapped
-- output uses double quotes
-- cursor moves to end of replaced attribute span
-
-### 3. Wrap variable/member attribute
-
-Input examples:
-
-- `class={fooClasses}`
-- `class={styles.root}`
-- `className={styles["root"]}`
-- `className={styles[0]}`
-
-Output:
-
-- `class={FN(fooClasses, "")}`
-- `className={FN(styles.root, "")}`
-
-Rules:
-
-- expression is trimmed before insertion into output
-- inserts second arg `, ""`
-- cursor moves inside the second empty string (`""`)
+- Given `class={foo}` or `class={styles.root}`, should produce `class={FN(<expr>, "")}`.
+- Given `className={styles["x"]}` or `className={styles[0]}`, should produce `className={FN(<expr>, "")}`.
+- Should trim outer whitespace of the expression before inserting into output.
+- Should always add the second argument `, ""`.
+- Should place the cursor inside the second empty string.
 
 Supported expression shape (effective matcher behavior):
 
-- identifier base (`foo`)
-- then zero or more:
+- base identifier (`foo`)
+- followed by zero or more of:
   - `.prop`
   - `["prop"]` / `['prop']`
   - `[0]`
 
-### 4. Unwrap variable/member `FN(...)`
+## Functionality: Unwrap Variable / Member `FN(...)`
 
-Input examples:
+- Given `class={FN(foo)}` or `className={FN(styles.root)}`, should produce `class={foo}` / `className={styles.root}`.
+- Should only unwrap when there is exactly one supported variable/member expression argument.
+- Should not unwrap complex expressions or multi-arg calls.
+- Should place the cursor at the end of the replaced attribute span.
 
-- `class={FN(fooClasses)}`
-- `className={FN(styles.root)}`
+## No-op Cases (Intentional)
 
-Output:
+Should return no transform / no code action for:
 
-- `class={fooClasses}`
-- `className={styles.root}`
-
-Rules:
-
-- only if exactly one supported variable/member expression argument
-- no unwrap for complex expressions or multi-arg calls
-- cursor moves to end of replaced attribute span
-
-## No-op / Unsupported Cases (Intentional)
-
-Must return no transform / no code action for:
-
-- multi-arg calls (for example `cn("a", active && "b")`)
-- complex expressions in `{...}` (ternaries, calls, boolean expressions, etc.)
-- malformed syntax
 - unsupported language
 - cursor outside target attribute
 - line length > 4000
+- multi-arg calls (`cn("a", cond && "b")`)
+- complex expressions (`class={isActive ? "a" : "b"}`, `class={getClasses()}`, etc.)
+- malformed syntax
 
-## String Escaping Behavior
+## String Escaping
 
-String parsing is intentionally minimal:
+- Should support minimal unescape while parsing string forms: `\"`, `\'`, `\\`.
+- Should escape `"` and `\` when outputting plain quoted attributes.
+- Should not be treated as a full JavaScript string parser.
 
-- supports minimal unescape for `\"`, `\'`, `\\`
-- plain attribute output escapes `"` and `\`
-- not a full JS string parser
+## Code Action Behavior
 
-## Code Action Contract
-
-When a transform exists:
-
-- return exactly one code action
-- kind: `RefactorRewrite` (provider also advertises quick-fix capability)
-- title:
+- Given a transform exists, should return exactly one code action.
+- Should use kind `RefactorRewrite` (provider may also advertise quick-fix capability).
+- Should use titles:
   - wrap: `Wrap <attr> with <FN>(...)`
   - unwrap: `Unwrap <FN>() in <attr>`
+- Given no transform, should return no code action.
+- Given a multi-line requested range, should return no code action.
+- Given a document that is not the active editor document, should return no code action.
 
-When no transform exists:
+## Command Behavior (`cnHelper.toggleClassCnAtCursor`)
 
-- return no code action
+- Given no transform, should no-op.
+- Given a transform, should:
+  - replace only the matched attribute span on the current line
+  - move cursor to the transform-defined position
+  - reveal the new cursor position
 
-Provider constraints:
+## Minimum Regression Coverage (Checklist)
 
-- no action for multi-line requested range
-- no action if queried document is not the active editor document
-
-## Command Contract
-
-Command `cnHelper.toggleClassCnAtCursor`:
-
-- no-op if no transform exists
-- otherwise replace only the matched attribute span on the current line
-- move cursor to transform-defined location
-- reveal new cursor position
-
-## Minimum Regression Coverage
-
-Recommended tests:
-
-- string wrap/unwrap
-- variable wrap/unwrap
+- string wrap / unwrap
+- variable/member wrap / unwrap
 - configured function name (`cx`)
-- cursor-inside vs cursor-outside attribute
+- cursor inside vs outside attribute
 - multi-arg no-op
 - complex-expression no-op
 - escaping roundtrip (`\"`, `\\`)
 - line-length guard
 - multiple attributes on one line
-- command integration test (real editor edit + cursor move)
-- code action integration test (appears/disappears correctly)
+- command integration test (edit + cursor move)
+- code action integration test (appears / disappears)

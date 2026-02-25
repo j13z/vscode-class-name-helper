@@ -1,5 +1,7 @@
 # Test Cases
 
+Manual playground snippets for quick copy / paste testing in a VS Code Extension Development Host.
+
 ### Adding `cn`
 
 ```svelte
