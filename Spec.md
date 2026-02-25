@@ -17,6 +17,8 @@ Short behavior contract (requirements + regression target).
 - Should trim whitespace.
 - Should accept only valid identifiers (`^[A-Za-z_$][\\w$]*$`).
 - Should fallback to `cn` if empty/invalid.
+- Should use the configured function name when wrapping.
+- Should ignore the configured function name when unwrapping (unwrap any matching wrapper call).
 
 Examples:
 
@@ -32,8 +34,8 @@ Examples:
 
 Match order (important):
 
-1. unwrap string form (`FN("...")`)
-2. unwrap variable/member form (`FN(expr)`)
+1. unwrap string form (`<anyFn>("...")`)
+2. unwrap variable/member form (`<anyFn>(expr)`)
 3. wrap plain string attribute
 4. wrap plain variable/member attribute
 
@@ -41,27 +43,28 @@ Match order (important):
 
 ## Functionality: Wrap String Attribute
 
-- Given `class="..."` or `class='...'`, should produce `class={FN("...", "")}`.
-- Given `className="..."` or `className='...'`, should produce `className={FN("...", "")}`.
+- Given `class="..."` or `class='...'`, should produce `class={FN("...", )}`.
+- Given `className="..."` or `className='...'`, should produce `className={FN("...", )}`.
 - Should always use double quotes inside `FN(...)`.
-- Should always add the second argument `, ""`.
-- Should place the cursor inside the second empty string.
+- Should leave a second-argument insertion slot as `, )` (no placeholder quotes).
+- Should place the cursor before `)` (after `, `).
 
 ## Functionality: Unwrap String `FN(...)`
 
-- Given `class={FN("...")}` or `className={FN('...')}`, should produce plain quoted attribute form.
+- Given `class={<anyFn>("...")}` or `className={<anyFn>('...')}`, should produce plain quoted attribute form.
 - Should output double quotes in the plain attribute (`class="..."` / `className="..."`).
 - Should only unwrap when there is exactly one string argument.
-- Given multi-arg call (for example `FN("a", cond && "b")`), should not unwrap.
+- Given multi-arg call (for example `<anyFn>("a", cond && "b")`), should not unwrap.
+- Should unwrap the trailing-comma placeholder form (`<anyFn>("a", )`) back to plain form.
 - Should place the cursor at the end of the replaced attribute span.
 
 ## Functionality: Wrap Variable / Member Expression
 
-- Given `class={foo}` or `class={styles.root}`, should produce `class={FN(<expr>, "")}`.
-- Given `className={styles["x"]}` or `className={styles[0]}`, should produce `className={FN(<expr>, "")}`.
+- Given `class={foo}` or `class={styles.root}`, should produce `class={FN(<expr>, )}`.
+- Given `className={styles["x"]}` or `className={styles[0]}`, should produce `className={FN(<expr>, )}`.
 - Should trim outer whitespace of the expression before inserting into output.
-- Should always add the second argument `, ""`.
-- Should place the cursor inside the second empty string.
+- Should leave a second-argument insertion slot as `, )` (no placeholder quotes).
+- Should place the cursor before `)` (after `, `).
 
 Supported expression shape (effective matcher behavior):
 
@@ -73,9 +76,10 @@ Supported expression shape (effective matcher behavior):
 
 ## Functionality: Unwrap Variable / Member `FN(...)`
 
-- Given `class={FN(foo)}` or `className={FN(styles.root)}`, should produce `class={foo}` / `className={styles.root}`.
+- Given `class={<anyFn>(foo)}` or `className={<anyFn>(styles.root)}`, should produce `class={foo}` / `className={styles.root}`.
 - Should only unwrap when there is exactly one supported variable/member expression argument.
 - Should not unwrap complex expressions or multi-arg calls.
+- Should unwrap the trailing-comma placeholder form (`FN(foo, )`) back to plain form.
 - Should place the cursor at the end of the replaced attribute span.
 
 ## No-op Cases (Intentional)
@@ -101,7 +105,7 @@ Should return no transform / no code action for:
 - Should use kind `RefactorRewrite` (provider may also advertise quick-fix capability).
 - Should use titles:
   - wrap: `Wrap <attr> with <FN>(...)`
-  - unwrap: `Unwrap <FN>() in <attr>`
+  - unwrap: `Unwrap <matchedFn>() in <attr>`
 - Given no transform, should return no code action.
 - Given a multi-line requested range, should return no code action.
 - Given a document that is not the active editor document, should return no code action.

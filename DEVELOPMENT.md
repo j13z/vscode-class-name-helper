@@ -66,5 +66,6 @@ No Marketplace publish is planned for now. Install via VSIX instead.
 ## Notes
 
 - The transform logic is intentionally regex-based and line-local (not AST-based).
+- Wrapping uses `cnHelper.functionName`; unwrapping accepts any matching wrapper function name.
 - `Spec.md` is the canonical behavior/regression contract. Update it when requirements change.
 - `test-cases.md` is an informal sample list; `Spec.md` and automated tests are the source of truth.

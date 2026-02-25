@@ -9,7 +9,7 @@ Manual playground snippets for quick copy / paste testing in a VS Code Extension
 <span class="font-bold"/>
 
 <!-- after -->
-<span class={cn("font-bold", "<<cursor here>>")}/>
+<span class={cn("font-bold", <<cursor here>>)}/>
 ```
 
 ### Refactoring back to string literal
@@ -31,7 +31,7 @@ Manual playground snippets for quick copy / paste testing in a VS Code Extension
 <div class={fooClasses}>
 
 <!-- after -->
-<div class={cn(fooClasses, "<<cursor here>>")}>
+<div class={cn(fooClasses, <<cursor here>>)}>
 ```
 
 ### Refactoring back to plain variable

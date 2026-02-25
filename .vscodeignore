@@ -5,6 +5,7 @@ eslint.config.mjs
 test-cases.md
 DEVELOPMENT.md
 Spec.md
+docs/**
 pnpm-lock.yaml
 .github/**
 .vscode/**

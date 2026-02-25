@@ -2,8 +2,9 @@
 
 ## [0.0.1]
 
-- Initial publish-ready release
-- Toggle `class` / `className` strings into `cn(...)` and back
+- Initial release
+- Toggle `class` / `className` string and variable values into helper calls and back
 - Svelte + React/TSX support
-- Configurable wrapper function name via `cnHelper.functionName`
-- Unit tests for transformation logic
+- Wrapping uses configured helper function (`cnHelper.functionName`); unwrapping matches any supported wrapper name
+- Code action support (cursor-based refactor) + tests (unit + integration)
+- Local VSIX install workflow and GitHub Releases VSIX packaging workflow

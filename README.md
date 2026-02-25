@@ -2,44 +2,53 @@
 
 Fast cursor-based class name refactorings for Svelte + React (Tailwind-friendly). Wrap and unwrap with configurable helper functions like `cn` or `clsx`.
 
-Use the code action (`Alt+Enter`) to toggle at the cursor between:
+Use the code action (`Alt+Enter`) to refactor code under the cursor, examples:
 
-- `class="px-2 py-1"` and `class={cn("px-2 py-1", "")}`
-- `class={fooClasses}` and `class={cn(fooClasses, "")}`
-- `className="…"` and `className={cn("…", "")}`
-- `className={styles.root}` and `className={cn(styles.root, "")}`
+### Wrap
 
-## Why
+<img width="500" src="https://github.com/j13z/vscode-class-name-helper/blob/main/docs/demo-wrap.gif?raw=true"
+  alt="Wrap demo: convert a plain class value into a helper call at the cursor" />
 
-- Cursor-local and fast (line-only scan)
-- Works in Svelte + React / TSX
-- Command + keybinding + code action
-- Configurable wrapper function name (`cn`, `cx`, …)
+- Example: `class="px-4"` → `class={cn("px-4", <cursor>)}`
+- Example: `class={fooClasses}` → `class={cn(fooClasses, <cursor>)}`
 
-## Usage
+### Unwrap
 
-- Put the cursor inside a `class` / `className` attribute
-- Open code actions at the caret (`Alt+Enter`) and run the Class Name Helper action
-- Or run `Class Name Helper: Toggle cn() Wrapper for class / className at Cursor`
+<img width="500" src="https://github.com/j13z/vscode-class-name-helper/blob/main/docs/demo-unwrap.gif?raw=true"
+  alt="Unwrap demo: convert a helper call back to a plain class value at the cursor" />
 
-## Supported
+- Example: `class={cn("px-4")}` → `class="px-4"`
+- Example: ``class={cn(fooClasses)}`` → `class={fooClasses}`
 
-- Svelte (`class`)
-- React JSX / TSX (`className`)
+## Features
 
-## Config
-
-- `cnHelper.functionName` (default: `cn`)
+- Use it at the caret via code action (`Alt+Enter`) or the command palette command.
+- Works in Svelte (`class`) and React / TSX (`className`).
+- Configurable wrapper function name (`cn`, `cx`, `clsx`, …).
+  - Config: `cnHelper.functionName` (default: `cn`)
+  - Wrapping uses the configured function; unwrapping matches supported wrapper calls regardless of function name.
 
 ## Install
 
-No Marketplace publish is planned for now. Install via VSIX (GitHub Releases or local build); see `DEVELOPMENT.md`.
+- Download the `.vsix` from a GitHub Release
+  - Install via VS Code: Extensions → `…` → `Install from VSIX …`
+- Alternatively: Local install after checkout
+  - `pnpm install` → `pnpm run install:local`
+- See `DEVELOPMENT.md` for more details
+
+## Extension footprint
+
+- Adds one code action / refactor command for supported files.
+- Activates only for `svelte`, `javascriptreact`, and `typescriptreact` files.
+- Does not scan the project, index files, or run background analysis.
+- Work is local to the current line at the caret (small regex-based match/replace).
+- Expected performance impact: no noticeable impact in normal use.
 
 ## Limits (Intentional)
 
-- Multi-argument calls are not unwrapped
 - Complex expressions inside `{…}` are left unchanged
+- Multi-argument calls are not unwrapped
 
 ## Development
 
-Developer setup / local packaging docs: see `DEVELOPMENT.md`.
+Developer setup / local packaging docs: see [`DEVELOPMENT.md`](./DEVELOPMENT.md).

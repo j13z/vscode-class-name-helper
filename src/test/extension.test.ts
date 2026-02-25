@@ -17,13 +17,13 @@ suite("Extension integration", () => {
 		setCursor(editor, "px-2")
 
 		await vscode.commands.executeCommand("cnHelper.toggleClassCnAtCursor")
-		await waitForDocumentText(editor.document, `<div class={cn("px-2 py-1", "")}></div>`)
+		await waitForDocumentText(editor.document, `<div class={cn("px-2 py-1", )}></div>`)
 
-		assert.equal(editor.document.getText(), `<div class={cn("px-2 py-1", "")}></div>`)
+		assert.equal(editor.document.getText(), `<div class={cn("px-2 py-1", )}></div>`)
 
 		const line = editor.document.lineAt(0).text
 		const cursor = editor.selection.active.character
-		const expectedCursor = line.indexOf(`", ""`) + 4
+		const expectedCursor = line.indexOf(`", )`) + 3
 		assert.equal(cursor, expectedCursor)
 	})
 

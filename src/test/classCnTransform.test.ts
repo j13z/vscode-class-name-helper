@@ -29,10 +29,10 @@ test("wraps svelte class attribute", () => {
 
 	assert.ok(result)
 	assert.equal(result.mode, "wrap")
-	assert.equal(result.replacementText, `class={cn("px-2 py-1", "")}`)
+	assert.equal(result.replacementText, `class={cn("px-2 py-1", )}`)
 	assert.equal(
 		result.newCursorCharacter - result.startCharacter,
-		result.replacementText.indexOf(`", ""`) + 4
+		result.replacementText.indexOf(`", )`) + 3
 	)
 })
 
@@ -51,6 +51,22 @@ test("unwraps svelte class attribute using configured function name", () => {
 	assert.equal(result.replacementText, `class="px-2 py-1"`)
 })
 
+test("unwraps string wrapper regardless of configured function name", () => {
+	const line = `<div class={cn("px-2 py-1")}>`
+	const cursor = line.indexOf("px-2")
+	const result = findClassCnEditInLine({
+		lineText: line,
+		cursorCharacter: cursor,
+		attributeName: "class",
+		functionName: "cx"
+	})
+
+	assert.ok(result)
+	assert.equal(result.mode, "unwrap")
+	assert.equal(result.title, `Unwrap cn() in class`)
+	assert.equal(result.replacementText, `class="px-2 py-1"`)
+})
+
 test("wraps react className attribute", () => {
 	const line = `<div className='flex items-center'></div>`
 	const cursor = line.indexOf("items-center")
@@ -62,7 +78,7 @@ test("wraps react className attribute", () => {
 	})
 
 	assert.ok(result)
-	assert.equal(result.replacementText, `className={cn("flex items-center", "")}`)
+	assert.equal(result.replacementText, `className={cn("flex items-center", )}`)
 })
 
 test("wraps svelte class variable", () => {
@@ -77,15 +93,61 @@ test("wraps svelte class variable", () => {
 
 	assert.ok(result)
 	assert.equal(result.mode, "wrap")
-	assert.equal(result.replacementText, `class={cn(fooClasses, "")}`)
+	assert.equal(result.replacementText, `class={cn(fooClasses, )}`)
 	assert.equal(
 		result.newCursorCharacter - result.startCharacter,
-		result.replacementText.indexOf(`, ""`) + 3
+		result.replacementText.indexOf(`, )`) + 2
 	)
 })
 
 test("unwraps svelte class variable from cn()", () => {
 	const line = `<div class={cn(fooClasses)}>`
+	const cursor = line.indexOf("fooClasses")
+	const result = findClassCnEditInLine({
+		lineText: line,
+		cursorCharacter: cursor,
+		attributeName: "class",
+		functionName: "cn"
+	})
+
+	assert.ok(result)
+	assert.equal(result.mode, "unwrap")
+	assert.equal(result.replacementText, `class={fooClasses}`)
+})
+
+test("unwraps variable wrapper regardless of configured function name", () => {
+	const line = `<div class={clsx(fooClasses)}>`
+	const cursor = line.indexOf("fooClasses")
+	const result = findClassCnEditInLine({
+		lineText: line,
+		cursorCharacter: cursor,
+		attributeName: "class",
+		functionName: "cx"
+	})
+
+	assert.ok(result)
+	assert.equal(result.mode, "unwrap")
+	assert.equal(result.title, `Unwrap clsx() in class`)
+	assert.equal(result.replacementText, `class={fooClasses}`)
+})
+
+test("unwraps trailing-comma placeholder form after wrapping string", () => {
+	const line = `<div class={cn("font-bold", )}>`
+	const cursor = line.indexOf("font-bold")
+	const result = findClassCnEditInLine({
+		lineText: line,
+		cursorCharacter: cursor,
+		attributeName: "class",
+		functionName: "cn"
+	})
+
+	assert.ok(result)
+	assert.equal(result.mode, "unwrap")
+	assert.equal(result.replacementText, `class="font-bold"`)
+})
+
+test("unwraps trailing-comma placeholder form after wrapping variable", () => {
+	const line = `<div class={cn(fooClasses, )}>`
 	const cursor = line.indexOf("fooClasses")
 	const result = findClassCnEditInLine({
 		lineText: line,
@@ -147,13 +209,28 @@ test("language mapping and function sanitizing", () => {
 	assert.equal(sanitizeFunctionName(""), "cn")
 })
 
+test("wrapping still uses configured function name", () => {
+	const line = `<div class="x">`
+	const cursor = line.indexOf("x")
+	const result = findClassCnEditInLine({
+		lineText: line,
+		cursorCharacter: cursor,
+		attributeName: "class",
+		functionName: "clsx"
+	})
+
+	assert.ok(result)
+	assert.equal(result.mode, "wrap")
+	assert.equal(result.replacementText, `class={clsx("x", )}`)
+})
+
 test("supports variable/member expression samples", () => {
 	const samples = [
 		{
 			line: `<div class={styles.root}>`,
 			attr: "class" as const,
 			cursorText: "styles",
-			wrap: `class={cn(styles.root, "")}`,
+			wrap: `class={cn(styles.root, )}`,
 			unwrapInput: `<div class={cn(styles.root)}>` ,
 			unwrap: `class={styles.root}`
 		},
@@ -161,7 +238,7 @@ test("supports variable/member expression samples", () => {
 			line: `<div className={styles["root"]}></div>`,
 			attr: "className" as const,
 			cursorText: "styles",
-			wrap: `className={cn(styles["root"], "")}`,
+			wrap: `className={cn(styles["root"], )}`,
 			unwrapInput: `<div className={cn(styles["root"])}></div>`,
 			unwrap: `className={styles["root"]}`
 		},
@@ -169,7 +246,7 @@ test("supports variable/member expression samples", () => {
 			line: `<div className={styles[0]}></div>`,
 			attr: "className" as const,
 			cursorText: "styles",
-			wrap: `className={cn(styles[0], "")}`,
+			wrap: `className={cn(styles[0], )}`,
 			unwrapInput: `<div className={cn(styles[0])}></div>`,
 			unwrap: `className={styles[0]}`
 		}
@@ -205,7 +282,7 @@ test("handles escaped string content when wrapping and unwrapping", () => {
 	const wrapInput = `<div class="a\\\"b \\\\ c">`
 	const wrapped = match(wrapInput, `a`, "class")
 	assert.ok(wrapped)
-	assert.equal(wrapped.replacementText, `class={cn("a\\\"b \\\\ c", "")}`)
+	assert.equal(wrapped.replacementText, `class={cn("a\\\"b \\\\ c", )}`)
 
 	const unwrapInput = `<div class={cn("a\\\"b \\\\ c")}>`
 	const unwrapped = match(unwrapInput, `a`, "class")
@@ -230,9 +307,9 @@ test("selects the matching attribute at cursor when multiple attributes exist", 
 
 	const classResult = match(line, "one", "class")
 	assert.ok(classResult)
-	assert.equal(classResult.replacementText, `class={cn("one", "")}`)
+	assert.equal(classResult.replacementText, `class={cn("one", )}`)
 
 	const classNameResult = match(line, "two", "className")
 	assert.ok(classNameResult)
-	assert.equal(classNameResult.replacementText, `className={cn("two", "")}`)
+	assert.equal(classNameResult.replacementText, `className={cn("two", )}`)
 })

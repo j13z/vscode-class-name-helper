@@ -39,12 +39,10 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 	if (!lineText.includes(attributeName)) return null
 
 	const escapedAttributeName = escapeRegExp(attributeName)
-	const escapedFunctionName = escapeRegExp(functionName)
-
 	// UNWRAP: class={cn("foo")} / className={cn("foo")}
 	{
 		const re = new RegExp(
-			String.raw`\b${escapedAttributeName}\s*=\s*\{\s*${escapedFunctionName}\s*\(\s*(["'])([^"'\\]*(?:\\.[^"'\\]*)*)\1\s*\)\s*\}`,
+			String.raw`\b${escapedAttributeName}\s*=\s*\{\s*([A-Za-z_$][\w$]*)\s*\(\s*(["'])([^"'\\]*(?:\\.[^"'\\]*)*)\2\s*(?:,\s*)?\)\s*\}`,
 			"g"
 		)
 
@@ -54,13 +52,14 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 			const end = start + m[0].length
 			if (cursorCharacter < start || cursorCharacter > end) continue
 
-			const rawValue = m[2]
+			const matchedFunctionName = m[1]
+			const rawValue = m[3]
 			const value = unescapeMinimal(rawValue)
 			const replacement = `${attributeName}="${escapeForDoubleQuotes(value)}"`
 
 			return {
 				mode: "unwrap",
-				title: `Unwrap ${functionName}() in ${attributeName}`,
+				title: `Unwrap ${matchedFunctionName}() in ${attributeName}`,
 				startCharacter: start,
 				endCharacter: end,
 				replacementText: replacement,
@@ -72,7 +71,7 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 	// UNWRAP VARIABLE: class={cn(fooClasses)} / className={cn(styles.root)}
 	{
 		const re = new RegExp(
-			String.raw`\b${escapedAttributeName}\s*=\s*\{\s*${escapedFunctionName}\s*\(\s*([^)]+?)\s*\)\s*\}`,
+			String.raw`\b${escapedAttributeName}\s*=\s*\{\s*([A-Za-z_$][\w$]*)\s*\(\s*([^)]+?)\s*(?:,\s*)?\)\s*\}`,
 			"g"
 		)
 
@@ -82,14 +81,15 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 			const end = start + m[0].length
 			if (cursorCharacter < start || cursorCharacter > end) continue
 
-			const expression = m[1].trim()
+			const matchedFunctionName = m[1]
+			const expression = m[2].trim()
 			if (!isSimpleVariableExpression(expression)) continue
 
 			const replacement = `${attributeName}={${expression}}`
 
 			return {
 				mode: "unwrap",
-				title: `Unwrap ${functionName}() in ${attributeName}`,
+				title: `Unwrap ${matchedFunctionName}() in ${attributeName}`,
 				startCharacter: start,
 				endCharacter: end,
 				replacementText: replacement,
@@ -113,8 +113,8 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 
 			const value = unescapeMinimal(m[2])
 			const escaped = escapeForDoubleQuotes(value)
-			const replacement = `${attributeName}={${functionName}("${escaped}", "")}`
-			const cursorOffset = `${attributeName}={${functionName}("`.length + escaped.length + `", "`.length
+			const replacement = `${attributeName}={${functionName}("${escaped}", )}`
+			const cursorOffset = `${attributeName}={${functionName}("`.length + escaped.length + `", `.length
 
 			return {
 				mode: "wrap",
@@ -140,9 +140,8 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 			const expression = m[1].trim()
 			if (!isSimpleVariableExpression(expression)) continue
 
-			const replacement = `${attributeName}={${functionName}(${expression}, "")}`
-			const cursorOffset =
-				`${attributeName}={${functionName}(`.length + expression.length + `, "`.length
+			const replacement = `${attributeName}={${functionName}(${expression}, )}`
+			const cursorOffset = `${attributeName}={${functionName}(`.length + expression.length + `, `.length
 
 			return {
 				mode: "wrap",
