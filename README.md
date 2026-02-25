@@ -1,24 +1,24 @@
 # Class Name Helper
 
-Fast cursor-based class name refactorings for Svelte + React (Tailwind-friendly). Wrap and unwrap with configurable helper functions like `cn` or `clsx`.
+Provides a code action (`Alt+Enter`) for fast cursor-based class name refactorings for Svelte + React (Tailwind-friendly).\
+Wrap and unwrap with configurable helper functions like `cn` or `clsx`.
 
-Use the code action (`Alt+Enter`) to refactor code under the cursor, examples:
-
-### Wrap
-
+<p>&nbsp;</p>
 <img width="500" src="https://github.com/j13z/vscode-class-name-helper/blob/main/docs/demo-wrap.gif?raw=true"
   alt="Wrap demo: convert a plain class value into a helper call at the cursor" />
 
 - Example: `class="px-4"` → `class={cn("px-4", <cursor>)}`
 - Example: `class={fooClasses}` → `class={cn(fooClasses, <cursor>)}`
 
-### Unwrap
-
+<p>&nbsp;</p>
 <img width="500" src="https://github.com/j13z/vscode-class-name-helper/blob/main/docs/demo-unwrap.gif?raw=true"
   alt="Unwrap demo: convert a helper call back to a plain class value at the cursor" />
 
 - Example: `class={cn("px-4")}` → `class="px-4"`
 - Example: ``class={cn(fooClasses)}`` → `class={fooClasses}`
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
 
 ## Features
 
@@ -48,6 +48,9 @@ Use the code action (`Alt+Enter`) to refactor code under the cursor, examples:
 
 - Complex expressions inside `{…}` are left unchanged
 - Multi-argument calls are not unwrapped
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
 
 ## Development
 
