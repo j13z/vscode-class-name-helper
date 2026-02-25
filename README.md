@@ -35,6 +35,10 @@ Built for quick refactors while editing Tailwind / utility-class UIs.
 
 - `cnHelper.functionName` (default: `cn`)
 
+## Install
+
+No Marketplace publish is planned for now. Install via VSIX (GitHub Releases or local build); see `DEVELOPMENT.md`.
+
 ## Limits (Intentional)
 
 - Multi-argument calls are not unwrapped

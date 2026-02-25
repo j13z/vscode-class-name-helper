@@ -25,12 +25,35 @@ Developer docs for working on the extension locally.
 - `pnpm run compile` or `pnpm run build`
 - `pnpm test` (unit tests)
 - `pnpm run test:vscode` (integration tests in VS Code; downloads a VS Code test binary on first run)
-- `pnpm run package:vsix` (creates `class-name-helper-local.vsix`)
-- `pnpm run install:local` (packages + installs via `code --install-extension ... --force`; requires `code` CLI in `PATH`)
+- `pnpm run package:vsix` (creates versioned `.vsix`, e.g. `class-name-helper-0.0.1.vsix`)
+- `pnpm run package:vsix:local` (creates `class-name-helper-local.vsix`)
+- `pnpm run install:local` (packages local VSIX and installs via `code --install-extension ... --force`; requires `code` CLI in `PATH`)
+
+## Install (VSIX)
+
+No Marketplace publish is planned for now. Install via VSIX instead.
+
+### Release path (GitHub Releases)
+
+- Download the `.vsix` from the GitHub Releases page:
+  - [https://github.com/j13z/vscode-class-name-helper/releases](https://github.com/j13z/vscode-class-name-helper/releases)
+- Install in VS Code UI:
+  - Extensions view
+  - `...` menu
+  - `Install from VSIX...`
+- CLI alternative:
+  - `code --install-extension /path/to/class-name-helper-X.Y.Z.vsix`
+
+### Local build path
+
+- Checkout repo
+- `pnpm install`
+- `pnpm run install:local`
 
 ## Local Packaging / Install Notes
 
-- The package task builds a local `.vsix` without publishing.
+- `package:vsix` is the versioned output used for GitHub Releases / CI.
+- `package:vsix:local` is the local convenience output for manual installs.
 - The VS Code in-app extension page content is based on packaged metadata + `README.md`.
 - `publisher` in `package.json` must remain a valid VS Code publisher identifier for `vsce package`.
 

@@ -15,7 +15,8 @@
     "email": "3612115+j13z@users.noreply.github.com"
   },
   "engines": {
-    "vscode": "^1.109.0"
+    "vscode": "^1.109.0",
+    "node": "20.x || 24.x"
   },
   "keywords": [
     "cn",
@@ -76,8 +77,9 @@
     "test:vscode": "pnpm run compile && vscode-test",
     "lint": "eslint src",
     "test": "pnpm run test:unit",
-    "package:vsix": "pnpm run compile && vsce package --no-dependencies --out class-name-helper-local.vsix",
-    "install:local": "pnpm run package:vsix && code --install-extension class-name-helper-local.vsix --force"
+    "package:vsix": "pnpm run compile && vsce package --no-dependencies --out class-name-helper-${npm_package_version}.vsix",
+    "package:vsix:local": "pnpm run compile && vsce package --no-dependencies --out class-name-helper-local.vsix",
+    "install:local": "pnpm run package:vsix:local && code --install-extension class-name-helper-local.vsix --force"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

@@ -6,4 +6,9 @@ test-cases.md
 DEVELOPMENT.md
 Spec.md
 pnpm-lock.yaml
-!out/**
+.github/**
+.vscode/**
+.vscode-test.mjs
+.nvmrc
+pnpm-workspace.yaml
+out/test/**
