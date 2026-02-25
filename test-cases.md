@@ -19,3 +19,25 @@
 <!-- after -->
 <span class="font-bold"/>
 ```
+
+## Handling variables
+
+### Wrapping a variable
+
+```svelte
+<!-- before -->
+<div class={fooClasses}>
+
+<!-- after -->
+<div class={cn(fooClasses, "<<cursor here>>")}>
+```
+
+### Refactoring back to plain variable
+
+```svelte
+<!-- before -->
+<div class={cn(fooClasses)}>
+
+<!-- after -->
+<div class={fooClasses}>
+```
