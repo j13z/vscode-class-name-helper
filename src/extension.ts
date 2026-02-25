@@ -8,19 +8,8 @@ import {
 
 const SUPPORTED_LANGUAGES: SupportedLanguageId[] = ["svelte", "javascriptreact", "typescriptreact"]
 const TOGGLE_COMMAND = "cnHelper.toggleClassCnAtCursor"
-const AFTER_EDIT_COMMAND = "cnHelper._afterClassCnEdit"
 
 export function activate(context: vscode.ExtensionContext) {
-	// Post-edit cursor placement helper (needs to be registered inside activate)
-	context.subscriptions.push(
-		vscode.commands.registerCommand(AFTER_EDIT_COMMAND, (pos: vscode.Position) => {
-			const editor = vscode.window.activeTextEditor
-			if (!editor) return
-			editor.selection = new vscode.Selection(pos, pos)
-			editor.revealRange(new vscode.Range(pos, pos))
-		})
-	)
-
 	const provider = new ClassCnCodeActionProvider()
 	const selector = SUPPORTED_LANGUAGES.map(language => ({ language }))
 
@@ -66,15 +55,9 @@ class ClassCnCodeActionProvider implements vscode.CodeActionProvider {
 		if (!found) return []
 
 		const action = new vscode.CodeAction(found.title, vscode.CodeActionKind.RefactorRewrite)
-
-		const edit = new vscode.WorkspaceEdit()
-		edit.replace(document.uri, found.replaceRange, found.replacementText)
-		action.edit = edit
-
 		action.command = {
-			command: AFTER_EDIT_COMMAND,
-			title: "",
-			arguments: [found.newCursor]
+			command: TOGGLE_COMMAND,
+			title: found.title
 		}
 
 		return [action]
