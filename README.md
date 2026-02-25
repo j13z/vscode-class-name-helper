@@ -32,6 +32,9 @@ Wrap and unwrap with configurable helper functions like `cn` or `clsx`.
 
 - Download the `.vsix` from a GitHub Release
   - Install via VS Code: Extensions → `…` → `Install from VSIX …`
+  - <img width="500" src="https://github.com/j13z/vscode-class-name-helper/blob/main/docs/screenshot-install-vsix.png?raw=true"
+  alt="Install VSIX from file" />
+
 - Alternatively: Local install after checkout
   - `pnpm install` → `pnpm run install:local`
 - See `DEVELOPMENT.md` for more details
