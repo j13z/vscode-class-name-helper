@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.0.2]
+
+- Re-release of `0.0.1` (no functional extension changes)
+- Version bump only to recover from GitHub Actions / release workflow issues
+
 ## [0.0.1]
 
 - Initial release
