@@ -20,10 +20,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-          cache: "pnpm"
 
       - name: Enable Corepack
         run: corepack enable
+
+      - name: Install pnpm
+        run: corepack prepare pnpm@9.15.4 --activate
+
+      - name: Show pnpm version
+        run: pnpm --version
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -37,10 +42,6 @@ jobs:
 
       - name: Run unit tests
         run: pnpm test
-
-      # Optional: enable once integration tests are reliable in CI (downloads VS Code + headless UI).
-      # - name: Run VS Code integration tests
-      #   run: xvfb-run -a pnpm run test:vscode
 
       - name: Package VSIX
         run: pnpm run package:vsix
