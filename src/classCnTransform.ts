@@ -69,6 +69,35 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 		}
 	}
 
+	// UNWRAP VARIABLE: class={cn(fooClasses)} / className={cn(styles.root)}
+	{
+		const re = new RegExp(
+			String.raw`\b${escapedAttributeName}\s*=\s*\{\s*${escapedFunctionName}\s*\(\s*([^)]+?)\s*\)\s*\}`,
+			"g"
+		)
+
+		let m: RegExpExecArray | null
+		while ((m = re.exec(lineText))) {
+			const start = m.index
+			const end = start + m[0].length
+			if (cursorCharacter < start || cursorCharacter > end) continue
+
+			const expression = m[1].trim()
+			if (!isSimpleVariableExpression(expression)) continue
+
+			const replacement = `${attributeName}={${expression}}`
+
+			return {
+				mode: "unwrap",
+				title: `Unwrap ${functionName}() in ${attributeName}`,
+				startCharacter: start,
+				endCharacter: end,
+				replacementText: replacement,
+				newCursorCharacter: start + replacement.length - 1
+			}
+		}
+	}
+
 	// WRAP: class="foo" / className='foo'
 	{
 		const re = new RegExp(
@@ -98,6 +127,34 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 		}
 	}
 
+	// WRAP VARIABLE: class={fooClasses} / className={styles.root}
+	{
+		const re = new RegExp(String.raw`\b${escapedAttributeName}\s*=\s*\{\s*([^}]+?)\s*\}`, "g")
+
+		let m: RegExpExecArray | null
+		while ((m = re.exec(lineText))) {
+			const start = m.index
+			const end = start + m[0].length
+			if (cursorCharacter < start || cursorCharacter > end) continue
+
+			const expression = m[1].trim()
+			if (!isSimpleVariableExpression(expression)) continue
+
+			const replacement = `${attributeName}={${functionName}(${expression}, "")}`
+			const cursorOffset =
+				`${attributeName}={${functionName}(`.length + expression.length + `, "`.length
+
+			return {
+				mode: "wrap",
+				title: `Wrap ${attributeName} with ${functionName}(...)`,
+				startCharacter: start,
+				endCharacter: end,
+				replacementText: replacement,
+				newCursorCharacter: start + cursorOffset
+			}
+		}
+	}
+
 	return null
 }
 
@@ -113,3 +170,8 @@ function escapeRegExp(s: string): string {
 	return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
+function isSimpleVariableExpression(value: string): boolean {
+	return /^[A-Za-z_$][\w$]*(?:\s*(?:\.\s*[A-Za-z_$][\w$]*|\[\s*(?:"[^"]*"|'[^']*'|\d+)\s*\]))*$/.test(
+		value
+	)
+}

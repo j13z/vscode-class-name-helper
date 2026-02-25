@@ -2,9 +2,13 @@
   "name": "class-name-helper",
   "displayName": "Class Name Helper",
   "description": "Wrap or unwrap class / className values with cn(…) at the cursor (Svelte + React / TSX).",
-  "publisher": "Johannes Schmitz",
+  "publisher": "j13z",
   "version": "0.0.1",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/j13z/vscode-class-name-helper"
+  },
   "icon": "images/icon.png",
   "author": {
     "name": "Johannes Schmitz",
@@ -64,13 +68,16 @@
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
+    "build": "pnpm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile && pnpm run lint",
     "test:unit": "node --test out/test/classCnTransform.test.js",
-    "test:vscode": "vscode-test",
+    "test:vscode": "pnpm run compile && vscode-test",
     "lint": "eslint src",
-    "test": "pnpm run test:unit"
+    "test": "pnpm run test:unit",
+    "package:vsix": "pnpm run compile && vsce package --no-dependencies --out class-name-helper-local.vsix",
+    "install:local": "pnpm run package:vsix && code --install-extension class-name-helper-local.vsix --force"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

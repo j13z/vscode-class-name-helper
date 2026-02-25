@@ -3,7 +3,7 @@ src/**
 tsconfig.json
 eslint.config.mjs
 test-cases.md
-vsc-extension-quickstart.md
-TODO.md
+DEVELOPMENT.md
+Spec.md
 pnpm-lock.yaml
 !out/**

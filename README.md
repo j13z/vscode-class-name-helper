@@ -1,34 +1,45 @@
 # Class Name Helper
 
-Fast cursor-based wrapping for `cn(…)` class strings.
+Fast cursor-based toggling for `cn(...)` wrappers in Svelte + React.
 
-`Class Name Helper` toggles between:
+Toggle at the cursor between:
 
 - `class="px-2 py-1"` and `class={cn("px-2 py-1", "")}`
+- `class={fooClasses}` and `class={cn(fooClasses, "")}`
 - `className="…"` and `className={cn("…", "")}`
+- `className={styles.root}` and `className={cn(styles.root, "")}`
 
-It only scans the current line at the cursor, so it stays lightweight.
+Built for quick refactors while editing Tailwind / utility-class UIs.
+
+## Why
+
+- Cursor-local and fast (line-only scan)
+- Works in Svelte + React / TSX
+- Command + keybinding + code action
+- Configurable wrapper function name (`cn`, `cx`, ...)
 
 ## Usage
 
-- Place the cursor inside a `class` / `className` attribute.
-- Run the command: `Class Name Helper: Toggle cn() Wrapper for class/className at Cursor`
-- Or use the shortcut:
+- Put the cursor inside a `class` / `className` attribute
+- Run `Class Name Helper: Toggle cn() Wrapper for class / className at Cursor`
+- Shortcut:
   - macOS: `Cmd+Alt+C`
   - Windows/Linux: `Ctrl+Alt+C`
-- The same action is also offered as a code action / quick fix.
 
-## Supported Languages
+## Supported
 
 - Svelte (`class`)
 - React JSX / TSX (`className`)
 
-## Setting
+## Config
 
 - `cnHelper.functionName` (default: `cn`)
-  - Use this if your project uses `cx(…)` or another wrapper name.
 
-## Notes
+## Limits (Intentional)
 
-- Unwrap only triggers for a single string argument: `cn("…")`
-- Multi-argument calls (for example `cn("a", active && "b")`) are intentionally left unchanged
+- Multi-argument calls are not unwrapped
+- Complex expressions inside `{...}` are left unchanged
+
+## Development
+
+Developer setup / local packaging docs: see `DEVELOPMENT.md`.
