@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.1.0]
+
+- Add setting: `cnHelper.matchAllContainingClass` (`Match all attributes containing "class"`)
+- When enabled (default: `true`), code action also works on class-like attributes such as `fooClass`, `classFoo`, `fooClassBar`
+- Useful for components exposing multiple class-related attributes
+
 ## [0.0.2]
 
 - Re-release of `0.0.1` (no functional extension changes)

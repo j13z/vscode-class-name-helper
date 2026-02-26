@@ -82,8 +82,6 @@
     "test:vscode": "pnpm run compile && vscode-test",
     "lint": "eslint src",
     "test": "pnpm run test:unit",
-    "release:check": "pnpm test && node scripts/release-validate.mjs",
-    "release:tag": "pnpm run release:check && node scripts/release-tag.mjs",
     "package:vsix": "pnpm run compile && vsce package --no-dependencies --out class-name-helper-${npm_package_version}.vsix",
     "package:vsix:local": "pnpm run compile && vsce package --no-dependencies --out class-name-helper-local.vsix",
     "install:local": "pnpm run package:vsix:local && code --install-extension class-name-helper-local.vsix --force"
