@@ -3,7 +3,7 @@
   "displayName": "Class Name Helper",
   "description": "Wrap or unwrap class / className values with cn(…) at the cursor (Svelte + React / TSX).",
   "publisher": "j13z",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "license": "MIT",
   "repository": {
     "type": "git",
