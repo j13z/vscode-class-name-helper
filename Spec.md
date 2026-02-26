@@ -25,6 +25,15 @@ Examples:
 - Given `" cx "`, should use `cx`.
 - Given `"cn.helper"`, should use `cn`.
 
+`cnHelper.matchAllContainingClass`:
+
+- Should default to `false`.
+- Given `false`, should only target language-default attribute names (`class` in Svelte, `className` in JSX/TSX).
+- Given `true`, should allow attributes whose name contains `class` (case-insensitive), for example:
+  - `fooClass`
+  - `classFoo`
+  - `fooClassBar`
+
 ## Matching Rules
 
 - Should inspect only the active line.

@@ -30,7 +30,7 @@ No more `class={cn(…)}` hand-typing 😌
 - Usable via code action (`Alt+Enter` targeting caret) or the command palette command.
 - Works in Svelte (`class`) and React / TSX (`className`).
 - Configurable wrapper function name (`cn`, `cx`, `clsx`, …).
-  - Config property: `cnHelper.functionName` (default: `cn`).
+- Configurable: Optionally match  all attributes containing `"class"`, e.g. `classFoo` (default: enabled)
 
 <p>&nbsp;</p>
 

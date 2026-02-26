@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
 import {
+	findClassContainingAttributeNamesInLine,
 	findClassCnEditInLine,
 	getAttributeNameForLanguage,
 	sanitizeFunctionName,
@@ -73,30 +74,41 @@ type Found = {
 
 function findAtCursor(editor: vscode.TextEditor): Found | null {
 	const doc = editor.document
-	const attributeName = getAttributeNameForLanguage(doc.languageId)
-	if (!attributeName) return null
-
 	const pos = editor.selection.active
 	const lineText = doc.lineAt(pos.line).text
+	const config = vscode.workspace.getConfiguration("cnHelper", doc.uri)
 	const functionName = sanitizeFunctionName(
-		vscode.workspace.getConfiguration("cnHelper", doc.uri).get<string>("functionName")
+		config.get<string>("functionName")
 	)
+	const matchAllContainingClass = config.get<boolean>("matchAllContainingClass", false)
 
-	const match = findClassCnEditInLine({
-		lineText,
-		cursorCharacter: pos.character,
-		attributeName,
-		functionName
-	})
-	if (!match) return null
+	const attributeNames = matchAllContainingClass
+		? findClassContainingAttributeNamesInLine(lineText)
+		: (() => {
+				const languageDefault = getAttributeNameForLanguage(doc.languageId)
+				return languageDefault ? [languageDefault] : []
+			})()
+	if (!attributeNames.length) return null
 
-	return {
-		title: match.title,
-		replaceRange: new vscode.Range(
-			new vscode.Position(pos.line, match.startCharacter),
-			new vscode.Position(pos.line, match.endCharacter)
-		),
-		replacementText: match.replacementText,
-		newCursor: new vscode.Position(pos.line, match.newCursorCharacter)
+	for (const attributeName of attributeNames) {
+		const match = findClassCnEditInLine({
+			lineText,
+			cursorCharacter: pos.character,
+			attributeName,
+			functionName
+		})
+		if (!match) continue
+
+		return {
+			title: match.title,
+			replaceRange: new vscode.Range(
+				new vscode.Position(pos.line, match.startCharacter),
+				new vscode.Position(pos.line, match.endCharacter)
+			),
+			replacementText: match.replacementText,
+			newCursor: new vscode.Position(pos.line, match.newCursorCharacter)
+		}
 	}
+
+	return null
 }

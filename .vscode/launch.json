@@ -12,6 +12,13 @@
 				"${workspaceFolder}/out/**/*.js"
 			],
 			"preLaunchTask": "${defaultBuildTask}"
+		},
+		{
+			"name": "Install Extension Locally",
+			"type": "node-terminal",
+			"request": "launch",
+			"command": "pnpm run install:local",
+			"cwd": "${workspaceFolder}"
 		}
 	]
 }

@@ -55,6 +55,11 @@
           "type": "string",
           "default": "cn",
           "description": "Function name used when wrapping / unwrapping class values (for example: cn or cx)."
+        },
+        "cnHelper.matchAllContainingClass": {
+          "type": "boolean",
+          "default": true,
+          "description": "Match all attributes containing \"class\", e.g. `classFoo`."
         }
       }
     },

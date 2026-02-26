@@ -1,6 +1,6 @@
 export type SupportedLanguageId = "svelte" | "javascriptreact" | "typescriptreact"
 
-export type AttributeName = "class" | "className"
+export type AttributeName = string
 
 export type LineEditMatch = {
 	mode: "wrap" | "unwrap"
@@ -30,6 +30,20 @@ export function sanitizeFunctionName(value: string | undefined): string {
 	const trimmed = value?.trim()
 	if (!trimmed) return "cn"
 	return /^[A-Za-z_$][\w$]*$/.test(trimmed) ? trimmed : "cn"
+}
+
+export function findClassContainingAttributeNamesInLine(lineText: string): string[] {
+	const names = new Set<string>()
+	const re = /\b([A-Za-z_$][\w$-]*)\s*=/g
+
+	let m: RegExpExecArray | null
+	while ((m = re.exec(lineText))) {
+		const name = m[1]
+		if (!name.toLowerCase().includes("class")) continue
+		names.add(name)
+	}
+
+	return Array.from(names)
 }
 
 export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch | null {

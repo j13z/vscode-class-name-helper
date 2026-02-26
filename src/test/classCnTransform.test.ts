@@ -1,12 +1,13 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import {
+	findClassContainingAttributeNamesInLine,
 	findClassCnEditInLine,
 	getAttributeNameForLanguage,
 	sanitizeFunctionName
 } from "../classCnTransform"
 
-function match(lineText: string, cursorText: string, attributeName: "class" | "className", functionName = "cn") {
+function match(lineText: string, cursorText: string, attributeName: string, functionName = "cn") {
 	const cursor = lineText.indexOf(cursorText)
 	assert.notEqual(cursor, -1, `cursor token not found: ${cursorText}`)
 	return findClassCnEditInLine({
@@ -209,6 +210,16 @@ test("language mapping and function sanitizing", () => {
 	assert.equal(sanitizeFunctionName(""), "cn")
 })
 
+test("finds attributes containing class in a line", () => {
+	const line = `<Cmp class="a" fooClass="b" classFoo="c" data-x="d" fooClassBar={x} />`
+	assert.deepEqual(findClassContainingAttributeNamesInLine(line), [
+		"class",
+		"fooClass",
+		"classFoo",
+		"fooClassBar"
+	])
+})
+
 test("wrapping still uses configured function name", () => {
 	const line = `<div class="x">`
 	const cursor = line.indexOf("x")
@@ -312,4 +323,14 @@ test("selects the matching attribute at cursor when multiple attributes exist", 
 	const classNameResult = match(line, "two", "className")
 	assert.ok(classNameResult)
 	assert.equal(classNameResult.replacementText, `className={cn("two", )}`)
+})
+
+test("supports wrapping non-standard attributes containing class", () => {
+	const customAttrWrap = match(`<div fooClass="x">`, "x", "fooClass")
+	assert.ok(customAttrWrap)
+	assert.equal(customAttrWrap.replacementText, `fooClass={cn("x", )}`)
+
+	const customAttrUnwrap = match(`<div classFoo={cn(fooClasses)}>`, "fooClasses", "classFoo")
+	assert.ok(customAttrUnwrap)
+	assert.equal(customAttrUnwrap.replacementText, `classFoo={fooClasses}`)
 })

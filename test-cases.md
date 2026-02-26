@@ -43,3 +43,27 @@ Manual playground snippets for quick copy / paste testing in a VS Code Extension
 <!-- after -->
 <div class={fooClasses}>
 ```
+
+## Matching all `*class*` attributes (optional setting)
+
+Enable: `cnHelper.matchAllContainingClass = true`
+
+### Wrap on custom class-like attribute
+
+```svelte
+<!-- before -->
+<MyComponent fooClass="p-4" />
+
+<!-- after -->
+<MyComponent fooClass={cn("p-4", <<cursor here>>)} />
+```
+
+### Unwrap on custom class-like attribute
+
+```svelte
+<!-- before -->
+<MyComponent classFoo={cn(fooClasses)} />
+
+<!-- after -->
+<MyComponent classFoo={fooClasses} />
+```
