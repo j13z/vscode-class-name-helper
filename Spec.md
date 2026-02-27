@@ -1,6 +1,6 @@
-# Class Name Helper Spec
+# Spec: Class Name Helper VS Code Extension
 
-Short behavior contract (requirements + regression target).
+_Intended for AI-drive development:_ Short behavior contract (requirements + regression target).
 
 ## Supported Scope
 
@@ -36,9 +36,10 @@ Examples:
 
 ## Matching Rules
 
-- Should inspect only the active line.
+- Should first try fast matching on the active line.
+- Should fall back to document-level matching when needed (for example multi-line attribute values).
 - Should only transform when the cursor is inside the target attribute span.
-- Should no-op when line length is `> 4000`.
+- Should no-op for overly large inputs (line fast-path guard and document fallback guard).
 - Given multiple attributes on one line, should only affect the one containing the cursor.
 
 Match order (important):
@@ -57,6 +58,8 @@ Match order (important):
 - Should always use double quotes inside `FN(...)`.
 - Should leave a second-argument insertion slot as `, )` (no placeholder quotes).
 - Should place the cursor before `)` (after `, `).
+- Given a multi-line quoted value, should join whitespace to a single-line class string when wrapping.
+  - Example: `"foo\n  bar"` -> `"foo bar"`
 
 ## Functionality: Unwrap String `FN(...)`
 

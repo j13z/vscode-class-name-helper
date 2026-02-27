@@ -67,3 +67,17 @@ Enable: `cnHelper.matchAllContainingClass = true`
 <!-- after -->
 <MyComponent classFoo={fooClasses} />
 ```
+
+### Multi-line value
+
+```svelte
+<!-- before -->
+<div class="foo
+    bar qux
+    baz bat"
+></div>
+
+<!-- after (has to join the lines)  -->
+<div class={cn("foo bar qux baz bat", <<cursor here>>)}>
+</div>
+```

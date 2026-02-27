@@ -2,6 +2,7 @@ import * as vscode from "vscode"
 import {
 	findClassContainingAttributeNamesInLine,
 	findClassCnEditInLine,
+	findClassCnEditInText,
 	getAttributeNameForLanguage,
 	sanitizeFunctionName,
 	type SupportedLanguageId
@@ -31,8 +32,9 @@ export function activate(context: vscode.ExtensionContext) {
 				})
 				.then(applied => {
 					if (!applied) return
-					editor.selection = new vscode.Selection(found.newCursor, found.newCursor)
-					editor.revealRange(new vscode.Range(found.newCursor, found.newCursor))
+					const newCursor = editor.document.positionAt(found.newCursorOffset)
+					editor.selection = new vscode.Selection(newCursor, newCursor)
+					editor.revealRange(new vscode.Range(newCursor, newCursor))
 				})
 		})
 	)
@@ -69,12 +71,13 @@ type Found = {
 	title: string
 	replaceRange: vscode.Range
 	replacementText: string
-	newCursor: vscode.Position
+	newCursorOffset: number
 }
 
 function findAtCursor(editor: vscode.TextEditor): Found | null {
 	const doc = editor.document
 	const pos = editor.selection.active
+	const lineStartOffset = doc.offsetAt(new vscode.Position(pos.line, 0))
 	const lineText = doc.lineAt(pos.line).text
 	const config = vscode.workspace.getConfiguration("cnHelper", doc.uri)
 	const functionName = sanitizeFunctionName(
@@ -88,7 +91,6 @@ function findAtCursor(editor: vscode.TextEditor): Found | null {
 				const languageDefault = getAttributeNameForLanguage(doc.languageId)
 				return languageDefault ? [languageDefault] : []
 			})()
-	if (!attributeNames.length) return null
 
 	for (const attributeName of attributeNames) {
 		const match = findClassCnEditInLine({
@@ -106,7 +108,38 @@ function findAtCursor(editor: vscode.TextEditor): Found | null {
 				new vscode.Position(pos.line, match.endCharacter)
 			),
 			replacementText: match.replacementText,
-			newCursor: new vscode.Position(pos.line, match.newCursorCharacter)
+			newCursorOffset: lineStartOffset + match.newCursorCharacter
+		}
+	}
+
+	// Fallback for multi-line attribute values.
+	const fullText = doc.getText()
+	const attributeNamesForText = matchAllContainingClass
+		? findClassContainingAttributeNamesInLine(fullText)
+		: (() => {
+				const languageDefault = getAttributeNameForLanguage(doc.languageId)
+				return languageDefault ? [languageDefault] : []
+			})()
+	if (!attributeNamesForText.length) return null
+	const cursorOffset = doc.offsetAt(pos)
+
+	for (const attributeName of attributeNamesForText) {
+		const match = findClassCnEditInText({
+			text: fullText,
+			cursorOffset,
+			attributeName,
+			functionName
+		})
+		if (!match) continue
+
+		return {
+			title: match.title,
+			replaceRange: new vscode.Range(
+				doc.positionAt(match.startCharacter),
+				doc.positionAt(match.endCharacter)
+			),
+			replacementText: match.replacementText,
+			newCursorOffset: match.newCursorCharacter
 		}
 	}
 

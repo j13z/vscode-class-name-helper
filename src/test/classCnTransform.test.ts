@@ -3,6 +3,7 @@ import test from "node:test"
 import {
 	findClassContainingAttributeNamesInLine,
 	findClassCnEditInLine,
+	findClassCnEditInText,
 	getAttributeNameForLanguage,
 	sanitizeFunctionName
 } from "../classCnTransform"
@@ -333,4 +334,38 @@ test("supports wrapping non-standard attributes containing class", () => {
 	const customAttrUnwrap = match(`<div classFoo={cn(fooClasses)}>`, "fooClasses", "classFoo")
 	assert.ok(customAttrUnwrap)
 	assert.equal(customAttrUnwrap.replacementText, `classFoo={fooClasses}`)
+})
+
+test("wraps multi-line string attribute and normalizes whitespace", () => {
+	const text = `<div class="foo
+    bar qux
+    baz bat"
+></div>`
+	const cursor = text.indexOf("bar qux")
+	const result = findClassCnEditInText({
+		text,
+		cursorOffset: cursor,
+		attributeName: "class",
+		functionName: "cn"
+	})
+
+	assert.ok(result)
+	assert.equal(result.mode, "wrap")
+	assert.equal(result.replacementText, `class={cn("foo bar qux baz bat", )}`)
+})
+
+test("does not wrap multi-line string attribute when cursor is outside attribute span", () => {
+	const text = `<div class="foo
+    bar qux
+    baz bat"
+></div>`
+	const cursor = text.indexOf("</div>")
+	const result = findClassCnEditInText({
+		text,
+		cursorOffset: cursor,
+		attributeName: "class",
+		functionName: "cn"
+	})
+
+	assert.equal(result, null)
 })

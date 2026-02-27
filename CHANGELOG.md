@@ -2,6 +2,13 @@
 <!-- https://keepachangelog.com/en/1.1.0/ -->
 
 
+## [Unreleased]
+
+### Added
+
+- Add support for wrapping multi-line quoted class values by joining whitespace to a single class string
+
+
 ## [0.1.0] 2025-02-27
 
 ### Added

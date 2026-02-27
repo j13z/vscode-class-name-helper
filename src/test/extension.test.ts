@@ -38,6 +38,51 @@ suite("Extension integration", () => {
 		const actionsOutside = await getCodeActions(editor)
 		assert.equal(actionsOutside.length, 0)
 	})
+
+	test("command wraps multi-line class string and joins whitespace", async () => {
+		const before = `<div class="foo
+    bar qux
+    baz bat"
+></div>`
+		const after = `<div class={cn("foo bar qux baz bat", )}
+></div>`
+
+		const editor = await openEditor(before, "svelte")
+		setCursor(editor, "bar qux")
+
+		await vscode.commands.executeCommand("cnHelper.toggleClassCnAtCursor")
+		await waitForDocumentText(editor.document, after)
+
+		assert.equal(editor.document.getText(), after)
+		const cursorOffset = editor.document.offsetAt(editor.selection.active)
+		assert.equal(cursorOffset, after.indexOf(" )}") + 1)
+	})
+
+	test("multi-line wrap keeps cursor before )} and not after following content", async () => {
+		const before = `<div
+	class="rounded-lg bg-popover p-6 shadow-lg border border-border focus:outline-none
+		data-[state=open]:animate-in data-[state=closed]:animate-out
+		data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+>
+	<form></form>
+</div>`
+		const after = `<div
+	class={cn("rounded-lg bg-popover p-6 shadow-lg border border-border focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95", )}
+>
+	<form></form>
+</div>`
+
+		const editor = await openEditor(before, "svelte")
+		setCursor(editor, "data-[state=open]:animate-in")
+
+		await vscode.commands.executeCommand("cnHelper.toggleClassCnAtCursor")
+		await waitForDocumentText(editor.document, after)
+
+		const docText = editor.document.getText()
+		const cursorOffset = editor.document.offsetAt(editor.selection.active)
+		assert.equal(cursorOffset, after.indexOf(" )}") + 1)
+		assert.ok(cursorOffset < docText.indexOf("<form>"))
+	})
 })
 
 async function openEditor(content: string, language: string): Promise<vscode.TextEditor> {

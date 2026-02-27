@@ -18,7 +18,16 @@ type FindLineEditParams = {
 	functionName: string
 }
 
+type FindTextEditParams = {
+	text: string
+	cursorOffset: number
+	attributeName: AttributeName
+	functionName: string
+	maxTextLength?: number
+}
+
 const MAX_LINE_LENGTH = 4000
+const MAX_TEXT_LENGTH = 200_000
 
 export function getAttributeNameForLanguage(languageId: string): AttributeName | null {
 	if (languageId === "svelte") return "class"
@@ -49,8 +58,20 @@ export function findClassContainingAttributeNamesInLine(lineText: string): strin
 export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch | null {
 	const { lineText, cursorCharacter, attributeName, functionName } = params
 
-	if (lineText.length > MAX_LINE_LENGTH) return null
-	if (!lineText.includes(attributeName)) return null
+	return findClassCnEditInText({
+		text: lineText,
+		cursorOffset: cursorCharacter,
+		attributeName,
+		functionName,
+		maxTextLength: MAX_LINE_LENGTH
+	})
+}
+
+export function findClassCnEditInText(params: FindTextEditParams): LineEditMatch | null {
+	const { text, cursorOffset, attributeName, functionName, maxTextLength = MAX_TEXT_LENGTH } = params
+
+	if (text.length > maxTextLength) return null
+	if (!text.includes(attributeName)) return null
 
 	const escapedAttributeName = escapeRegExp(attributeName)
 	// UNWRAP: class={cn("foo")} / className={cn("foo")}
@@ -61,10 +82,10 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 		)
 
 		let m: RegExpExecArray | null
-		while ((m = re.exec(lineText))) {
+		while ((m = re.exec(text))) {
 			const start = m.index
 			const end = start + m[0].length
-			if (cursorCharacter < start || cursorCharacter > end) continue
+			if (cursorOffset < start || cursorOffset > end) continue
 
 			const matchedFunctionName = m[1]
 			const rawValue = m[3]
@@ -90,10 +111,10 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 		)
 
 		let m: RegExpExecArray | null
-		while ((m = re.exec(lineText))) {
+		while ((m = re.exec(text))) {
 			const start = m.index
 			const end = start + m[0].length
-			if (cursorCharacter < start || cursorCharacter > end) continue
+			if (cursorOffset < start || cursorOffset > end) continue
 
 			const matchedFunctionName = m[1]
 			const expression = m[2].trim()
@@ -120,15 +141,16 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 		)
 
 		let m: RegExpExecArray | null
-		while ((m = re.exec(lineText))) {
+		while ((m = re.exec(text))) {
 			const start = m.index
 			const end = start + m[0].length
-			if (cursorCharacter < start || cursorCharacter > end) continue
+			if (cursorOffset < start || cursorOffset > end) continue
 
 			const value = unescapeMinimal(m[2])
-			const escaped = escapeForDoubleQuotes(value)
+			const escaped = escapeForDoubleQuotes(normalizeWhitespaceIfMultiline(value))
 			const replacement = `${attributeName}={${functionName}("${escaped}", )}`
-			const cursorOffset = `${attributeName}={${functionName}("`.length + escaped.length + `", `.length
+			const cursorPlacementOffset =
+				`${attributeName}={${functionName}("`.length + escaped.length + `", `.length
 
 			return {
 				mode: "wrap",
@@ -136,7 +158,7 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 				startCharacter: start,
 				endCharacter: end,
 				replacementText: replacement,
-				newCursorCharacter: start + cursorOffset
+				newCursorCharacter: start + cursorPlacementOffset
 			}
 		}
 	}
@@ -146,16 +168,17 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 		const re = new RegExp(String.raw`\b${escapedAttributeName}\s*=\s*\{\s*([^}]+?)\s*\}`, "g")
 
 		let m: RegExpExecArray | null
-		while ((m = re.exec(lineText))) {
+		while ((m = re.exec(text))) {
 			const start = m.index
 			const end = start + m[0].length
-			if (cursorCharacter < start || cursorCharacter > end) continue
+			if (cursorOffset < start || cursorOffset > end) continue
 
 			const expression = m[1].trim()
 			if (!isSimpleVariableExpression(expression)) continue
 
 			const replacement = `${attributeName}={${functionName}(${expression}, )}`
-			const cursorOffset = `${attributeName}={${functionName}(`.length + expression.length + `, `.length
+			const cursorPlacementOffset =
+				`${attributeName}={${functionName}(`.length + expression.length + `, `.length
 
 			return {
 				mode: "wrap",
@@ -163,7 +186,7 @@ export function findClassCnEditInLine(params: FindLineEditParams): LineEditMatch
 				startCharacter: start,
 				endCharacter: end,
 				replacementText: replacement,
-				newCursorCharacter: start + cursorOffset
+				newCursorCharacter: start + cursorPlacementOffset
 			}
 		}
 	}
@@ -187,4 +210,9 @@ function isSimpleVariableExpression(value: string): boolean {
 	return /^[A-Za-z_$][\w$]*(?:\s*(?:\.\s*[A-Za-z_$][\w$]*|\[\s*(?:"[^"]*"|'[^']*'|\d+)\s*\]))*$/.test(
 		value
 	)
+}
+
+function normalizeWhitespaceIfMultiline(value: string): string {
+	if (!/[\r\n]/.test(value)) return value
+	return value.replace(/\s+/g, " ").trim()
 }
