@@ -1,15 +1,21 @@
 # Change Log
 <!-- https://keepachangelog.com/en/1.1.0/ -->
 
-
 ## [Unreleased]
+
+### Added
+
+_Nothing._
+
+
+## [0.2.0] 2026-03-01
 
 ### Added
 
 - Add support for wrapping multi-line quoted class values by joining whitespace to a single class string
 
 
-## [0.1.0] 2025-02-27
+## [0.1.0] 2026-02-27
 
 ### Added
 
@@ -17,7 +23,7 @@
     - When enabled (default: `true`), code action also works on class-like attributes such as `fooClass`, `classFoo`, `fooClassBar`
 
 
-## [0.0.2] 2025-02-25
+## [0.0.2] 2026-02-25
 
 - Re-release of `0.0.1` (no functional extension changes)
     - Version bump only to recover from GitHub Actions / release workflow issues
